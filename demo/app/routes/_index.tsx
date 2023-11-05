@@ -25,7 +25,7 @@ export default function Index() {
 	const data = useLoaderData<typeof loader>();
 
 	return (
-		<div className="flex flex-col gap-8 p-8">
+		<div className="mx-auto flex max-w-lg flex-col gap-8 p-8">
 			<h1 className="text-3xl font-bold">Freedom Wall</h1>
 			<Link
 				to="messages/new"

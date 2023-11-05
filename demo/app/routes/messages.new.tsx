@@ -25,7 +25,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
 export default function NewMessage() {
 	return (
-		<div className="flex flex-col gap-8 p-8">
+		<div className="mx-auto flex max-w-lg flex-col gap-8 p-8">
 			<Link to="/">
 				<h1 className="text-3xl font-bold">&larr; New Message</h1>
 			</Link>
@@ -38,7 +38,7 @@ export default function NewMessage() {
 					name="author"
 					id="author"
 					placeholder="Anonymous"
-					className="mb-2 border border-black p-2"
+					className="mb-2 rounded-md border border-black p-2"
 				/>
 				<label htmlFor="content" className="text-lg font-medium">
 					Message
@@ -46,7 +46,7 @@ export default function NewMessage() {
 				<textarea
 					name="content"
 					id="content"
-					className="mb-2 border border-black p-2"
+					className="mb-2 rounded-md border border-black p-2"
 					placeholder="Your Message"
 					required
 				></textarea>
