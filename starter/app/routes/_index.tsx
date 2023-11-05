@@ -1,5 +1,5 @@
 import { json, type MetaFunction } from "@remix-run/node";
-import { Link, useLoaderData } from "@remix-run/react";
+import { Link, NavLink, useLoaderData } from "@remix-run/react";
 import { db } from "~/utils/db.server";
 
 export const meta: MetaFunction = () => {
@@ -27,12 +27,12 @@ export default function Index() {
 	return (
 		<div className="mx-auto flex max-w-lg flex-col gap-8 p-8">
 			<h1 className="text-3xl font-bold">Freedom Wall</h1>
-			<Link
+			<NavLink
 				to="messages/new"
-				className="rounded-full bg-blue-600 py-2 text-center text-white"
+				className="flex items-center justify-center gap-2 rounded-full bg-blue-600 py-2 text-center text-white"
 			>
 				New Message
-			</Link>
+			</NavLink>
 			<div className="flex flex-col gap-4">
 				{data.messages.map((message) => (
 					<Link key={message.id} to={`/messages/${message.id}`}>
