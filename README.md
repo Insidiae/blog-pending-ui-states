@@ -1,6 +1,10 @@
 # Pending UI States
 
-TODO: Intro
+This blog post was inspired by [a tweet from Ryan Florence](https://twitter.com/ryanflorence/status/1718717433664737686):
+
+![Ryan Florence's tweet](images/tweet.png)
+
+The Remix docs has [a great discussion post](https://remix.run/docs/en/main/discussion/pending-ui) about various types of pending UI states, and serves as the main reference of this blog for the examples I'll be demonstrating later.
 
 > **Note**
 >
@@ -8,7 +12,11 @@ TODO: Intro
 
 ## Examples of Pending UI
 
-TODO: Short intro/explainer
+If you regularly browse the internet, you've probably encountered these pending UI states too many times to count. They're especially noticeable on slower connection speeds, where you're usually left staring at the screen for several seconds watching that spinner go round and round.
+
+While it can be frustrating as a user to see these pending UI states, they are often necessary to maintain a proper flow in your user experience. A great user experience can be characterised by a thoughtful use of these pending UI states to provide proper visual cues during network-intensive actions.
+
+The Remix docs categorises pending UI states to three different types. Let's see some examples for each of them and see where they might be used in a web application.
 
 ### Busy Indicators (Spinners)
 
@@ -224,4 +232,30 @@ We can also use the `pendingReply` to display the busy indicator while we wait f
 
 ## When to Use Each Type of Pending UI
 
-TODO: Refer to Remix Docs for Guiding Principles
+As the Remix docs states, a great user experience makes use of these different types of pending UI states to provide proper visual cues for ongoing network requests while making the overall experience less frustrating as possible.
+
+### When should you use Busy Indicators?
+
+Being the most common type of pending UI state to be seen in many web applications, busy indicators are also the most familiar type of pending UI that users can identify. The Remix docs suggests using busy indicators when there's a lot of uncertainty involved in the associated network request, such as triggering side effects with critical processes or navigating to a new page or section.
+
+In our example, we used busy indicators mainly to indicate pending form submissions. Since we also disable form inputs and submit buttons while the form submission is in progress, the busy indicator helpfully indicates to the user to wait until the submission completes before attempting another submission.
+
+### When should you use Skeleton Fallbacks?
+
+Another commonly used form of pending UI, skeleton fallbacks are also easily recognizable to the user. Since skeleton fallbacks provide an outline to how the pending content will look once it resolves, they can be really useful to help make your web application have a more "app-like" feel. The Remix docs suggests using skeleton fallbacks when you can render a small amount of important content (via `defer`) and let the less important, but more network-intensive requests load in the background.
+
+In our example, we used a skeleton fallback to view the main message content while we wait for the (artificially delayed) replies load into the page. This way, the user can view the main content of the message and expect the replies to get loaded in later.
+
+### When should you use Optimistic UI?
+
+Optimistic UIs are less obvious to spot, mainly because they are designed to make a smoother user experience for predictable network requests. The Remix docs suggests using Optimistic UI when you can reasonably expect the result of your network request (typically with actions that don't lead to a change in URL) so you can immediately show the expected result to the user.
+
+In our example, we used Optimistic UI when posting a reply to a message, letting us immediately see the reply we just wrote get appended to the top of the replies list while the (still artificially delayed) request for the updated replies loads in the background. We can style the optimistically displayed reply however we want - in this case we styled it a bit differently to that we can distinguish when it's still in a pending state until it turns back into the usual styles when the updated replies finish loading.
+
+## Conclusion
+
+Let's close this blog post with a direct quote from the Remix docs:
+
+> _"Creating network-aware UI via busy indicators, optimistic UI, and skeleton fallbacks significantly improves the user experience by showing visual cues during actions that require network interaction. Getting good at this is the best way to build applications your users trust."_
+
+Pending UI states can be frustrating to users especially on slow network connections. We can lessen this pain, and maybe even improve the overall experience by giving more thought to where we use which type of pending UI to provide helpful visual cues and maintain a proper flow in the user's experience using your applications.
