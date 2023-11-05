@@ -10,6 +10,13 @@
 npx create-remix@latest --template remix-run/remix/templates/unstable-vite
 ```
 
+## Initialize Prisma + SQLite database
+
+```shellscript
+npx prisma db push
+npm run db:seed
+```
+
 ## Run
 
 Spin up the Vite dev server:

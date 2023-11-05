@@ -82,7 +82,6 @@ export default function Index() {
 
 	useEffect(
 		function resetFormOnSuccess() {
-			console.log(fetcher.state, fetcher.data);
 			if (fetcher.state === "idle" && fetcher.data?.ok) {
 				$form.current?.reset();
 			}
