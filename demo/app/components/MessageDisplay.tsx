@@ -1,6 +1,7 @@
 import { Link, Await, Form } from "@remix-run/react";
 import { Suspense } from "react";
 import type { Message as PrismaMessage } from "@prisma/client";
+import Spinner from "./Spinner";
 
 type Message = Pick<PrismaMessage, "author" | "content">;
 type Reply = Pick<PrismaMessage, "id" | "author" | "content">;
@@ -22,12 +23,13 @@ export default function MessageDisplay({
 			</Link>
 
 			<article className="flex flex-col rounded-[1.375rem] border border-black p-4">
-				<p>
+				<p className="text-2xl">
 					<span className="font-bold">{message?.author}</span> posted:
 				</p>
-				<p className="mb-4">{message?.content}</p>
+				<p className="mb-4 text-2xl">{message?.content}</p>
 
 				<section className="flex flex-col gap-4">
+					<hr className="border-slate-300" />
 					<h2 className="text-xl font-bold">Replies</h2>
 
 					<Form method="post" className="flex flex-col gap-2">
@@ -51,13 +53,17 @@ export default function MessageDisplay({
 							placeholder="Your Message"
 							required
 						></textarea>
-						<button className="rounded-full bg-blue-600 py-2 text-center text-white">
+						<button
+							className="flex items-center justify-center gap-2 rounded-full bg-blue-600 py-2 text-center text-white disabled:bg-blue-400"
+							disabled={!!pendingReply}
+						>
+							{pendingReply ? <Spinner /> : null}
 							Post Reply
 						</button>
 					</Form>
 
 					<div className="flex flex-col gap-4">
-						{pendingReply && (
+						{pendingReply ? (
 							<article className="flex flex-col rounded-md border border-dashed border-slate-500 bg-slate-100 p-4 text-slate-500">
 								<p>
 									<span className="font-bold">{pendingReply.author}</span>{" "}
@@ -65,11 +71,12 @@ export default function MessageDisplay({
 								</p>
 								<p>{pendingReply.content}</p>
 							</article>
-						)}
+						) : null}
 						<Suspense
 							fallback={
-								<div className="rounded-md border border-dashed border-black p-8 text-center">
-									Loading...
+								<div className="flex flex-col gap-2 rounded-md border border-dashed border-black p-4">
+									<div className="h-4 w-36 animate-pulse bg-slate-500" />
+									<div className="h-4 w-64 animate-pulse bg-slate-500" />
 								</div>
 							}
 						>

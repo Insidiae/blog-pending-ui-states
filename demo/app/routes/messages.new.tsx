@@ -1,6 +1,15 @@
-import { redirect, type ActionFunctionArgs } from "@remix-run/node";
-import { Link } from "@remix-run/react";
+import {
+	redirect,
+	type ActionFunctionArgs,
+	type MetaFunction,
+} from "@remix-run/node";
+import { Form, Link, useNavigation } from "@remix-run/react";
+import Spinner from "~/components/Spinner";
 import { db } from "~/utils/db.server";
+
+export const meta: MetaFunction = () => {
+	return [{ title: "New Message | Freedom Wall" }];
+};
 
 export async function action({ request }: ActionFunctionArgs) {
 	const form = await request.formData();
@@ -24,12 +33,27 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export default function NewMessage() {
+	const navigation = useNavigation();
+
+	// important to check you're submitting to the action
+	// for the pending UI, not just any action
+	const isSubmitting = navigation.formAction === "/messages/new";
+
+	//? Show a loading spinner when navigating to another page
+	// if (navigation.state === "loading") {
+	// 	return (
+	// 		<div className="flex h-screen w-screen items-center justify-center">
+	// 			<Spinner />
+	// 		</div>
+	// 	);
+	// }
+
 	return (
 		<div className="mx-auto flex max-w-lg flex-col gap-8 p-8">
 			<Link to="/">
 				<h1 className="text-3xl font-bold">&larr; New Message</h1>
 			</Link>
-			<form method="post" className="flex flex-col gap-2">
+			<Form method="post" className="flex flex-col gap-2">
 				<label htmlFor="author" className="text-lg font-medium">
 					Screen Name
 				</label>
@@ -50,10 +74,14 @@ export default function NewMessage() {
 					placeholder="Your Message"
 					required
 				></textarea>
-				<button className="rounded-full bg-blue-600 py-2 text-center text-white">
+				<button
+					className="flex items-center justify-center gap-2 rounded-full bg-blue-600 py-2 text-center text-white disabled:bg-blue-400"
+					disabled={isSubmitting}
+				>
+					{isSubmitting ? <Spinner /> : null}
 					Submit
 				</button>
-			</form>
+			</Form>
 		</div>
 	);
 }

@@ -1,6 +1,7 @@
 import {
-	ActionFunctionArgs,
-	LoaderFunctionArgs,
+	type ActionFunctionArgs,
+	type LoaderFunctionArgs,
+	type MetaFunction,
 	defer,
 	json,
 } from "@remix-run/node";
@@ -23,6 +24,10 @@ import { db } from "~/utils/db.server";
 // 		}),
 // 	});
 // }
+
+export const meta: MetaFunction = () => {
+	return [{ title: "Message | Freedom Wall" }];
+};
 
 export async function loader({ params }: LoaderFunctionArgs) {
 	const message = await db.message.findUnique({
