@@ -12,10 +12,9 @@ TODO: Short intro/explainer
 
 ### Busy Indicators (Spinners)
 
-TODO: Page Navigation
+The simplest (and probably the most common) form of busy indicator is a spinner that shows up when the page is still loading:
 
 ```tsx
-// app/routes/messages.new.tsx
 const navigation = useNavigation();
 
 if (navigation.state === "loading") {
@@ -27,11 +26,11 @@ if (navigation.state === "loading") {
 }
 ```
 
-TODO: Aside - Pending Links with Remix
+You can also use spinners on the links themselves to indicate that the navigation is in progress. This can be useful on things like main navigation links.
 
 > **Note**
 >
-> Remix has a `<NavLink />` component that provides helpful props for styling active and pending states. For example, you can use the `isPending` state to render a spiner while you navigate to another page:
+> Remix has a `<NavLink />` component that provides helpful props for styling active and pending states. For example, you can use the `isPending` state to render a spinner while you're navigating to another page:
 >
 > ```tsx
 > // app/routes/_index.tsx
@@ -47,7 +46,9 @@ TODO: Aside - Pending Links with Remix
 >
 > &nbsp;
 
-TODO: Adding a New Message
+Busy indicators are especially useful when working with form submissions. If you can keep track of the progress of the form submission, you can use it to display a busy indicator and/or disable the form inputs/submit buttons while the form submission is in progress.
+
+Let's see an example using the example app. In a Remix app, you can check the `navigation.formAction` value (or `fetcher.state` if you're using `useFetcher()`) to determine whether the form is submitting:
 
 ```tsx
 // app/routes/messages.new.tsx
@@ -72,7 +73,9 @@ You can then use the `isSubmitting` variable to display the `<Spinner />` and di
 
 ### Skeleton Fallbacks
 
-TODO: `defer`-red data loading and `<Suspense />`
+In Remix, you can `defer` some data to be sent to the client so that the client can quickly load the page with smaller bits of important data while the `defer`-red data loads in the background.
+
+Inthe example app, we can use `defer` to `await` the message content and just let the replies load in the background. While we're at it, let's also increase the delay on the `setTimeout` for dramatic effect:
 
 ```diff
 export async function loader({ params }: LoaderFunctionArgs) {
@@ -100,6 +103,8 @@ export async function loader({ params }: LoaderFunctionArgs) {
 	});
 }
 ```
+
+We can use React's `<Suspense />` along with Remix's `<Await />` to display a skeleton fallback while waiting and then display the `defer`-red data when it finally finishes loading:
 
 ```tsx
 // app/routes/messages.$id.tsx
@@ -143,7 +148,11 @@ export async function loader({ params }: LoaderFunctionArgs) {
 
 ### Optimistic UI
 
-TODO: Add Reply to Message
+Optimistic UIs can be a great way to improve user experience for processes with fairly predictable results, such as liking/bookmarking a post in social media. Since network requests to tell the server to update cetrain values can take time, we can take advantage of the predictable nature of our request to immediately display the expected result on the client side, without waiting for the server response to reflect the updated values.
+
+In the example app, let's use the Optimistic UI pattern to immediately display the reply to a message without waiting for the delayed server response.
+
+In Remix, we can use `fetcher.formData` to get the values the user just submitted:
 
 ```tsx
 // app/routes/messages.$id.tsx
@@ -162,19 +171,7 @@ if (fetcher.formData) {
 }
 ```
 
-```diff
-// app/routes/messages.$id.tsx
-<fetcher.Form method="post" ref={$form}>
--	<fieldset className="flex flex-col gap-2">
-+	<fieldset className="flex flex-col gap-2" disabled={!!pendingReply}>
-		{/* ... */}
-		<button className="...">
-+			{pendingReply ? <Spinner /> : null}
-			Post Reply
-		</button>
-	</fieldset>
-</fetcher.Form>
-```
+Now that we have a `pendingReply` with the values we got from the `formData`, we can simply append it to the other replies in the list (or replace the placeholder for an empty list). In this example, we'll also style the `pendingReply` a bit differently to distinguish it from the other existing replies:
 
 ```diff
 // app/routes/messages.$id.tsx
@@ -207,6 +204,22 @@ if (fetcher.formData) {
 		/* ... */
 	</Suspense>
 </div>
+```
+
+We can also use the `pendingReply` to display the busy indicator while we wait for the server response:
+
+```diff
+// app/routes/messages.$id.tsx
+<fetcher.Form method="post" ref={$form}>
+-	<fieldset className="flex flex-col gap-2">
++	<fieldset className="flex flex-col gap-2" disabled={!!pendingReply}>
+		{/* ... */}
+		<button className="...">
++			{pendingReply ? <Spinner /> : null}
+			Post Reply
+		</button>
+	</fieldset>
+</fetcher.Form>
 ```
 
 ## When to Use Each Type of Pending UI
