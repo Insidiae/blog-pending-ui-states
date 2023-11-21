@@ -5,9 +5,15 @@ import {
 	defer,
 	json,
 } from "@remix-run/node";
-import { useLoaderData, Link, Await, useFetcher } from "@remix-run/react";
-import { Suspense, useEffect, useRef } from "react";
-import Spinner from "~/components/Spinner";
+import {
+	useLoaderData,
+	Link,
+	Await,
+	useFetchers,
+	Form,
+	useSubmit,
+} from "@remix-run/react";
+import { Suspense } from "react";
 import { db } from "~/utils/db.server";
 
 // export async function loader({ params }: LoaderFunctionArgs) {
@@ -77,31 +83,24 @@ export async function action({ request, params }: ActionFunctionArgs) {
 
 export default function Index() {
 	const { message, replies } = useLoaderData<typeof loader>();
-	let $form = useRef<HTMLFormElement>(null);
-	const fetcher = useFetcher<typeof action>();
+	const submit = useSubmit();
+	const fetchers = useFetchers();
 
-	useEffect(
-		function resetFormOnSuccess() {
-			if (fetcher.state === "idle" && fetcher.data?.ok) {
-				$form.current?.reset();
+	let pendingReplies = fetchers.reduce<
+		{ key: string; author: string; content: string }[]
+	>((replies, fetcher) => {
+		if (fetcher.state === "loading") {
+			const author = fetcher.formData?.get("author") || "Anonymous";
+			const content = fetcher.formData?.get("content");
+
+			if (typeof author === "string" && typeof content === "string") {
+				//? Generate a fake "id" for the pending submssion, we'll use it later
+				replies.push({ author, content, key: fetcher.key });
 			}
-		},
-		[fetcher.state, fetcher.data],
-	);
-
-	let pendingReply: { author: string; content: string } | undefined;
-	if (fetcher.formData) {
-		const author = fetcher.formData.get("author") || "Anonymous";
-		const content = fetcher.formData.get("content");
-
-		//? You can use the same validation logic as you used in the `action`
-		if (typeof author === "string" && typeof content === "string") {
-			pendingReply = {
-				author,
-				content,
-			};
 		}
-	}
+
+		return replies;
+	}, []);
 
 	return (
 		<div className="mx-auto flex max-w-lg flex-col gap-8 p-8">
@@ -119,8 +118,16 @@ export default function Index() {
 					<hr className="border-slate-300" />
 					<h2 className="text-xl font-bold">Replies</h2>
 
-					<fetcher.Form method="post" ref={$form}>
-						<fieldset className="flex flex-col gap-2" disabled={!!pendingReply}>
+					<Form
+						onSubmit={(event) => {
+							event.preventDefault();
+							submit(event.currentTarget, { method: "POST", navigate: false });
+							// Want to spam form submissions to test the Optimistic UI?
+							// Just comment out the next line:
+							event.currentTarget.reset();
+						}}
+					>
+						<fieldset className="flex flex-col gap-2">
 							<label htmlFor="author" className="text-lg font-medium">
 								Display Name
 							</label>
@@ -142,22 +149,26 @@ export default function Index() {
 								required
 							></textarea>
 							<button className="flex items-center justify-center gap-2 rounded-full bg-blue-600 py-2 text-center text-white disabled:bg-blue-400">
-								{pendingReply ? <Spinner /> : null}
 								Post Reply
 							</button>
 						</fieldset>
-					</fetcher.Form>
+					</Form>
 
 					<div className="flex flex-col gap-4">
-						{pendingReply ? (
-							<article className="flex flex-col rounded-md border border-dashed border-slate-500 bg-slate-100 p-4 text-slate-500">
-								<p>
-									<span className="font-bold">{pendingReply.author}</span>{" "}
-									replied:
-								</p>
-								<p>{pendingReply.content}</p>
-							</article>
-						) : null}
+						{pendingReplies.length !== 0
+							? pendingReplies.map((pendingReply) => (
+									<article
+										key={pendingReply.key}
+										className="flex flex-col rounded-md border border-dashed border-slate-500 bg-slate-100 p-4 text-slate-500"
+									>
+										<p>
+											<span className="font-bold">{pendingReply.author}</span>{" "}
+											replied:
+										</p>
+										<p>{pendingReply.content}</p>
+									</article>
+							  ))
+							: null}
 						<Suspense
 							fallback={
 								<div className="flex flex-col gap-2 rounded-md border border-dashed border-black p-4">
@@ -168,7 +179,7 @@ export default function Index() {
 						>
 							<Await resolve={replies}>
 								{(replies) => {
-									if (!pendingReply && replies.length === 0) {
+									if (pendingReplies.length === 0 && replies.length === 0) {
 										return (
 											<div className="rounded-md border border-dashed border-black p-8 text-center">
 												No replies yet. Be the first to reply to this post now!

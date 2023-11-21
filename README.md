@@ -1,4 +1,4 @@
-# Pending UI States
+# Blog: Pending UI States
 
 This blog post was inspired by [a tweet from Ryan Florence](https://twitter.com/ryanflorence/status/1718717433664737686):
 
@@ -229,6 +229,81 @@ We can also use the `pendingReply` to display the busy indicator while we wait f
 	</fieldset>
 </fetcher.Form>
 ```
+
+#### Optimistically display pending submissions as a list
+
+We can do even better than that and display a _list_ of pending replies!
+
+First we need to turn the form back into a regular `<Form />`, and use Remix's `useSubmit()` hook to let us submit the form without refreshing the page:
+
+```diff
+- const fetcher = useFetcher();
++ const submit = useSubmit();
+
+```
+
+```diff
+- <fetcher.Form method="post" ref={$form}>
++ <Form
++   onSubmit={(event) => {
++     event.preventDefault();
++     submit(event.currentTarget, { method: "POST", navigate: false });
++     event.currentTarget.reset();
++   }}
++ >
+```
+
+Then we can use Remix's `useFetchers()` hook (note the "s" at the end) to get a list of form submissions on the current page, which we can filter to show the pending submissions:
+
+```ts
+const fetchers = useFetchers();
+
+let pendingReplies = fetchers.reduce<
+  { key: string; author: string; content: string }[]
+>((replies, fetcher) => {
+  if (fetcher.state === "loading") {
+    const author = fetcher.formData?.get("author") || "Anonymous";
+    const content = fetcher.formData?.get("content");
+
+    if (typeof author === "string" && typeof content === "string") {
+      //? Generate a fake "id" for the pending submssion, we'll use it later
+      replies.push({ author, content, key: fetcher.key });
+    }
+  }
+
+  return replies;
+}, []);
+```
+
+Let's update our component to display this list of pending submissions:
+
+```diff
+-  {pendingReply ? (
+-    <article className="flex flex-col rounded-md border border-dashed border-slate-500 bg-slate-100 p-4 text-slate-500">
+-      <p>
+-        <span className="font-bold">{pendingReply.author}</span>{" "}
+-        replied:
+-      </p>
+-      <p>{pendingReply.content}</p>
+-    </article>
+-  ) : null}
++  {pendingReplies.length !== 0
++    ? pendingReplies.map((pendingReply) => (
++        <article
++          key={pendingReply.key}
++          className="flex flex-col rounded-md border border-dashed border-slate-500 bg-slate-100 p-4 text-slate-500"
++        >
++          <p>
++            <span className="font-bold">{pendingReply.author}</span>{" "}
++            replied:
++          </p>
++          <p>{pendingReply.content}</p>
++        </article>
++      ))
++    : null}
+```
+
+Now we can simply use `pendingReplies.length` when we want to check if there are any items in the `pendingReplies`. We can even stop disabling the form altogether since we can now optimistically render a list of pending submissions without having to wait for each one to resolve!
 
 ## When to Use Each Type of Pending UI
 
